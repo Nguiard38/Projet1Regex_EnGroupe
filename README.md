@@ -1,7 +1,7 @@
 # Projet1Regex_EnGroupe
 
 ## Lien utile pour organiser le README
-La page github de Simplonline utiliser-markdown(https://github.com/Simplonline-foad/utiliser-markdown/blob/master/README.md)
+La page github de Simplonline [utiliser-markdown](https://github.com/Simplonline-foad/utiliser-markdown/blob/master/README.md)
 
 ## Regle à suivre dans ce projet 
 * Bien décrire tous ses commit
