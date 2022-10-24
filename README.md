@@ -11,8 +11,8 @@ La page github de Simplonline [utiliser-markdown](https://github.com/Simplonline
 * Marquer comme fait (en écrivant "Fait" a cote) dans A faire les étapes terminer
 
 ## A faire
-1. Choix de la structure de donnés (Comme TP10)
-2. Implementation de la structures 
+1. Choix de la structure de donnés (Comme TP10) : Fait
+2. Implementation de la structures : Fait
 3. Ecrire les fonctions pour creer l'automate (character, all,...)
 4. Ecrire la fonction build qui prend un regex et qui creer l'auomate
 5. Choisir la methode pour executer l'automate sur un texte (backtracking, ensemble des états dans lesquels on peut se trouver)
