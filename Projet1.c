@@ -46,6 +46,7 @@ typedef struct set set_t;
 
 state_t *new_state(int c, state_t *out1, state_t *out2) {
     // À modifier !
+    printf("Hello world !");
     return NULL;
 }
 
