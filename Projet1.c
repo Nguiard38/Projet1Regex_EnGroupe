@@ -45,7 +45,22 @@ void freeAutomate(automate a){
 state* numberEx(char* regex){
     //Léo
     //Elle prend un regex écrit en postfixe et renvoie le tableau des états numérotés
-    state* res;
+    int n = 0;
+    while (regex[n] != '\0') {
+        n++;
+    }
+    state* res = malloc(sizeof(state)*n);
+    int index = 0;
+    for(int i=0; i<n; i++){
+        if(regex[i]=='|' || regex[i]=='@' || regex[i]=='*' || regex[i]=='?'){
+            res[i].index=-1;
+        } else {
+            res[i].index=index;
+            index++;
+        }
+        res[i].c=regex[i];
+        res[i].voisins=NULL;
+    }
     return res;
 }
 
