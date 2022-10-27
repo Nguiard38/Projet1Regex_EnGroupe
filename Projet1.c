@@ -4,119 +4,74 @@
 #include <stdio.h>
 #include <assert.h>
 
+struct state;
 
-#define EPS 256
-#define ALL 257
-#define MATCH 258
+struct maillon1 {
+    struct state* val;
+    struct maillon1* next;
+};
 
-#define MAX_LINE_LENGTH 1024
+struct maillon2 {
+    struct state* depart;
+    struct state* arrivee;
+    struct maillon2* next;
+};
 
 struct state {
-    int c;
-    struct state *out1;
-    struct state *out2;
-    int last_set;
+    char c;
+    int index;
+    struct maillon1* voisins;
 };
 
-typedef struct state state_t;
-
-struct nfa {
-    state_t *start;
-    state_t *final;
-    int n;
+struct automate {
+    struct state* debut;
+    struct maillon1* fin;
 };
 
-typedef struct nfa nfa_t;
+typedef struct maillon1 maillon1;
+typedef struct maillon2 maillon2;
+typedef struct state state;
+typedef struct automate automate;
 
-struct stack {
-    int length;
-    int capacity;
-    nfa_t *data;
-};
-
-typedef struct stack stack;
-
-struct set {
-    int length;
-    int id;
-    state_t **states;
-};
-
-typedef struct set set_t;
-
-state_t *new_state(int c, state_t *out1, state_t *out2) {
-    // À modifier !
-    return NULL;
+void addMaillon1(maillon1* first, state* new){
 }
 
-nfa_t character(int c) {
-    // À modifier !
-    nfa_t a = {0};
-    return a;
+void addMaillon2(maillon2* first, state* depart, state* arrivee){
 }
 
-nfa_t all(void) {
-    // À modifier !
-    nfa_t a = {0};
-    return a;
+void freeAutomate(automate a){
 }
 
-nfa_t concat(nfa_t a, nfa_t b) {
-    // À modifier !
-    nfa_t c = {0};
-    return c;
+state* numberEx(char* regex){
+    //Elle prend un regex écrit en postfixe et renvoie le tableau des états numérotés
+    state* res;
+    return res;
 }
 
-nfa_t alternative(nfa_t a, nfa_t b) {
-    // À modifier !
-    nfa_t c = {0};
-    return c;
+maillon1* premiers(state* numberRegex){
+    maillon1* res;
+    return res;
 }
 
-nfa_t star(nfa_t a) {
-    // À modifier !
-    nfa_t astar = {0};
-    return astar;
+maillon1* derniers(state* numberRegex){
+    maillon1* res;
+    return res;
 }
 
-nfa_t maybe(nfa_t a) {
-    // À modifier !
-    nfa_t amaybe = {0};
-    return amaybe;
+maillon2* facteurs(state* numberRegex){
+    maillon2* res;
+    return res;
 }
 
-stack *stack_new(int capacity) {
-    stack *s = malloc(sizeof(stack));
-    s->data = malloc(capacity * sizeof(nfa_t));
-    s->capacity = capacity;
-    s->length = 0;
-    return s;
+automate build(maillon1* p, maillon1* d, maillon2* f){
+    automate res;
+    return res;
 }
 
-void stack_free(stack *s) {
-    free(s->data);
-    free(s);
+bool appartient(automate a, char* mot){
+    return false;
 }
 
-nfa_t pop(stack *s) {
-    assert(s->length > 0);
-    nfa_t result = s->data[s->length - 1];
-    s->length--;
-    return result;
-}
+int main(){
 
-void push(stack *s, nfa_t a) {
-    assert(s->capacity > s->length);
-    s->data[s->length] = a;
-    s->length++;
-}
-
-nfa_t build(char *regex) {
-    // À modifier !
-    nfa_t result;
-    return result;
-}
-
-
-int main(int argc, char* argv[]) {
 }
