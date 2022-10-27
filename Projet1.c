@@ -43,32 +43,38 @@ void freeAutomate(automate a){
 }
 
 state* numberEx(char* regex){
+    //Léo
     //Elle prend un regex écrit en postfixe et renvoie le tableau des états numérotés
     state* res;
     return res;
 }
 
 maillon1* premiers(state* numberRegex){
+    //Nathan
     maillon1* res;
     return res;
 }
 
 maillon1* derniers(state* numberRegex){
+    //Léo
     maillon1* res;
     return res;
 }
 
 maillon2* facteurs(state* numberRegex){
+    //Nathan
     maillon2* res;
     return res;
 }
 
 automate build(maillon1* p, maillon1* d, maillon2* f){
+    //Léo
     automate res;
     return res;
 }
 
 bool appartient(automate a, char* mot){
+    //Nathan
     return false;
 }
 
