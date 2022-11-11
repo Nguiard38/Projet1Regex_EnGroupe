@@ -6,9 +6,13 @@
 
 struct state;
 
+struct couche {
+    struct state* val;
+    struct couche* next;
+};
+
 struct pile {
-    state* val;
-    struct pile* next;
+    struct couche* first;
 };
 
 struct maillon1 {
@@ -33,6 +37,7 @@ struct automate {
     struct maillon1* fin;
 };
 
+typedef struct couche couche;
 typedef struct pile pile;
 typedef struct maillon1 maillon1;
 typedef struct maillon2 maillon2;
@@ -41,17 +46,30 @@ typedef struct automate automate;
 
 pile* create_pile_vide()
 {
-
+    pile* p = malloc(sizeof(pile));
+    p->first = NULL;
+    return p;
 }
 
-void empiler(pile* first, state* new)
+void empiler(pile* p, state* new)
 {
-
+    couche* newFirst = malloc(sizeof(couche));
+    newFirst->val = new;
+    newFirst->next = p->first;
+    p->first = newFirst;
+    
 }
 
-state* depiler(pile* first)
+state* depiler(pile* p)
 {
-
+    if(p != NULL)
+    {
+        state* res = p->first->val;
+        couche* aLib = p->first;
+        p->first = p->first->next;
+        free(aLib);
+        return res;
+    }
 }
 
 void addMaillon1(maillon1* first, state* new){
@@ -73,9 +91,19 @@ int longueurMot(state* mot)
     return n;
 }
 
+state* create_state_from_car(state c)
+{
+    state* res = malloc(sizeof(state) * 2);
+    res[0] = c;
+    res[1].c = '\0';
+    res[1].index = -1;
+    res[1].voisins = NULL;
+    return res;
+}
+
 state** match_with(state* nbEx)
 {
-    pile* traite = create_pile_vide;
+    pile* traite = create_pile_vide();
     state* traitement = malloc(sizeof(state) * 2);
 
     int i = 0;
@@ -85,13 +113,19 @@ state** match_with(state* nbEx)
         char carTraitement = nbEx[i].c;
         if(carTraitement=='|' || carTraitement=='@')
         {
+            printf("| ou @\n");
+            printf("rempli : %d\n", caseRempli);
             if(caseRempli == 0)
             {
                 state* mot2 = depiler(traite);
                 state* mot1 = depiler(traite);
                 if(nbEx[i+1].c == '\0')
                 {
-                    state* res[3] = {mot1, mot2, &nbEx[i]};
+                    printf("Fini\n");
+                    state** res = malloc(sizeof(state*) * 3);
+                    res[0] = mot1;
+                    res[1] = mot2;
+                    res[2] = &nbEx[i];
                     return res;
                 }
                 else
@@ -119,12 +153,17 @@ state** match_with(state* nbEx)
                     empiler(traite, new);
                 }
             }
-            if(caseRempli == 1)
+            else if(caseRempli == 1)
             {
+                printf("test\n");
                 state* mot1 = depiler(traite);
                 if(nbEx[i+1].c == '\0')
                 {
-                    state* res[3] = {mot1, &traitement[0], &nbEx[i]};
+                    printf("fini\n");
+                    state** res = malloc(sizeof(state*) * 3);
+                    res[0] = mot1;
+                    res[1] = create_state_from_car(traitement[0]);
+                    res[2] = &nbEx[i];
                     return res;
                 }
                 else
@@ -145,11 +184,14 @@ state** match_with(state* nbEx)
                     empiler(traite, new);
                 }
             }
-            if(caseRempli == 2)
+            else if(caseRempli == 2)
             {
                 if(nbEx[i+1].c == '\0')
                 {
-                    state* res[3] = {&traitement[0], &traitement[1], &nbEx[i]};
+                    state** res = malloc(sizeof(state*) * 3);
+                    res[0] = create_state_from_car(traitement[0]);
+                    res[1] = create_state_from_car(traitement[1]);
+                    res[2] = &nbEx[i];
                     return res;
                 }
                 else
@@ -169,12 +211,16 @@ state** match_with(state* nbEx)
         }
         else if(carTraitement=='*' || carTraitement=='?')
         {
+            printf("Kleene\n");
             if(caseRempli == 0)
             {
                 state* mot1 = depiler(traite);
                 if(nbEx[i+1].c == '\0')
                 {
-                    state* res[3] = {mot1, NULL, &nbEx[i]};
+                    state** res = malloc(sizeof(state*) * 3);
+                    res[0] = mot1;
+                    res[1] = NULL;
+                    res[2] = &nbEx[i];
                     return res;
                 }
                 else
@@ -200,7 +246,10 @@ state** match_with(state* nbEx)
             {
                 if(nbEx[i+1].c == '\0')
                 {
-                    state* res[3] = {&traitement[0], NULL, &nbEx[i]};
+                    state** res = malloc(sizeof(state*) * 3);
+                    res[0] = create_state_from_car(traitement[0]);
+                    res[1] = NULL;
+                    res[2] = &nbEx[i];
                     return res;
                 }
                 else
@@ -221,7 +270,10 @@ state** match_with(state* nbEx)
             {
                 if(nbEx[i+1].c == '\0')
                 {
-                    state* res[3] = {&traitement[1], NULL, &nbEx[i]};
+                    state** res = malloc(sizeof(state*) * 3);
+                    res[0] = create_state_from_car(traitement[1]);
+                    res[1] = NULL;
+                    res[2] = &nbEx[i];
                     return res;
                 }
                 else
@@ -240,8 +292,17 @@ state** match_with(state* nbEx)
         }
         else
         {
+            printf("Lettre\n");
             traitement[caseRempli] = nbEx[i];
             caseRempli++;
+            if(nbEx[i+1].c == '\0')
+            {
+                state** res = malloc(sizeof(state*) * 3);
+                res[0] = create_state_from_car(traitement[caseRempli]);
+                res[1] = NULL;
+                res[2] = &nbEx[i];
+                return res;
+            }
         }
         i++;
     }
@@ -251,12 +312,36 @@ state** match_with(state* nbEx)
 state* numberEx(char* regex){
     //Léo
     //Elle prend un regex écrit en postfixe et renvoie le tableau des états numérotés
-    state* res;
+
+    int n = 0;
+    while (regex[n] != '\0') {
+        n++;
+    }
+
+    state* res = malloc(sizeof(state)*(n+1));
+
+    int index = 0;
+
+    for(int i=0; i<n; i++){
+        if(regex[i]=='|' || regex[i]=='@' || regex[i]=='*' || regex[i]=='?'){
+            res[i].index=-1;
+        } else {
+            res[i].index=index;
+            index++;
+        }
+        res[i].c=regex[i];
+        res[i].voisins=NULL;
+    }
+    
+    res[n].c='\0';
+    res[n].index=-1;
+    res[n].voisins=NULL;
+
     return res;
 }
 
 maillon1* premiers(state* numberRegex){
-    //Nathan
+    state** match = match_with(numberRegex);
     maillon1* res;
     return res;
 }
@@ -284,6 +369,48 @@ bool appartient(automate a, char* mot){
     return false;
 }
 
+void print_state(state* mot)
+{
+    int i = 0;
+    while(mot[i].c != '\0')
+    {
+        printf("%c", mot[i].c);
+        i++;
+    }
+    printf("\n");
+}
+
 int main(){
+    state a;
+    a.c = 'a';
+    a.index = 0;
+    a.voisins = NULL;
+
+    state b;
+    b.c = 'b';
+    b.index = 1;
+    b.voisins = NULL;
+
+    state arobase;
+    arobase.c = '@';
+    arobase.index = -1;
+    arobase.voisins = NULL;
+
+    state fin;
+    fin.c = '\0';
+    fin.index = -1;
+    fin.voisins = NULL;
+
+    state test[4] = {a,b,arobase,fin};
+    state* test2 = numberEx("ab|a|");
+
+    print_state(test2);
+
+    state** match = match_with(test2);
+    
+    print_state(match[0]);
+    print_state(match[1]);
+    printf("%c\n", match[2][0].c);
+
 
 }
