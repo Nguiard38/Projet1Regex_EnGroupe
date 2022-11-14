@@ -150,8 +150,9 @@ int longueurMot(state* mot)
     return n;
 }
 
-state* create_state_from_car(state c)
+state* create_stateEtoile_from_state(state c)
 {
+    //Cette fonction prend en argument un state c et retourne le tableau de state contenant c et le state vide
     state* res = malloc(sizeof(state) * 2);
     res[0] = c;
     res[1].c = '\0';
@@ -162,6 +163,17 @@ state* create_state_from_car(state c)
 
 state** match_with(state* nbEx)
 {
+    /*
+    Cette fonction prend en argument une expression (un tableau de state) et retourne le tableau contenant le match de cette expression
+    
+    EX : (a|b)(ab) -> ab|ab@@
+    match[0] : (a|b) -> ab|
+    match[1] : ab -> ab@
+    match[2] : @
+
+    L'algo fonctionne grace a un tableau de trois state qui represente les caractere entrain d'etre traite
+    et grace a une pile d'expression (tableau de state) qui represente les expression deja traite
+    */
     pile* traite = create_pile_vide();
     state* traitement = malloc(sizeof(state) * 2);
 
@@ -396,6 +408,11 @@ state* numberEx(char* regex){
 }
 
 maillon1* premiers(state* numberRegex){
+    /*
+    Cette fonction prend en argument une expression (tableau de state)
+    Et retourne la liste (maillon chaine) des state qui peuevent etre premieres lettres de l'expression
+    */
+
     maillon1* res = NULL; 
 
     if(numberRegex[0].c == '\0')
@@ -445,6 +462,12 @@ maillon1* derniers(state* numberRegex){
 
 maillon2* ensembleDernPrem(state* u, state* v)
 {
+
+    /*
+    Cette fonction prend en argument deux expressions u et v (tableau de state) et renvoie 
+    l'ensemble des facteurs possible que forment la concatenation de u et v en utilisant les derniers de u et les premiers de v
+    */
+
     maillon2* res = NULL;
     maillon1* dern = derniers(u);
     maillon1* prem = premiers(v);
@@ -466,6 +489,10 @@ maillon2* ensembleDernPrem(state* u, state* v)
 
 maillon2* facteurs(state* numberRegex)
 {
+    /*
+    Cette fonction prend en argument une expression (tableau de state)
+    Et retourne la liste (maillon chaine) des couples de state qui sont facteur de l'expression
+    */
 
     if(numberRegex[0].c == '\0' || numberRegex[1].c == '\0')
     {
