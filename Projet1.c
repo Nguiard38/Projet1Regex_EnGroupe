@@ -73,9 +73,68 @@ state* depiler(pile* p)
 }
 
 void addMaillon1(maillon1* first, state* new){
+    maillon1* current = first;
+    while(current->next != NULL)
+    {
+        current = current->next;
+    }
+    current->next = malloc(sizeof(maillon1));
+    current->next->next = NULL;
+    current->next->val = new;
+}
+
+maillon1* unionMaillon1(maillon1* u, maillon1* v)
+{
+    maillon1* current = u;
+    while(current->next != NULL)
+    {
+        current = current->next;
+    }
+    current->next = v;
+    return u;
+    
 }
 
 void addMaillon2(maillon2* first, state* depart, state* arrivee){
+
+    if(first == NULL)
+    {
+        first = malloc(sizeof(maillon2));
+        first->next = NULL;
+        first->depart = depart;
+        first->arrivee = arrivee;
+    }
+    else
+    {
+        maillon2* current = first;
+        while(current->next != NULL)
+        {
+            current = current->next;
+        }
+        current->next = malloc(sizeof(maillon2));
+        current->next->next = NULL;
+        current->next->depart = depart;
+        current->next->arrivee = arrivee;
+    }
+    
+}
+
+maillon2* unionMaillon2(maillon2* u, maillon2* v)
+{
+    if(u == NULL)
+    {
+        return v;
+    }
+    else
+    {
+        maillon2* current = u;
+        while(current->next != NULL)
+        {
+            current = current->next;
+        }
+        current->next = v;
+        return u;
+    }
 }
 
 void freeAutomate(automate a){
@@ -113,15 +172,12 @@ state** match_with(state* nbEx)
         char carTraitement = nbEx[i].c;
         if(carTraitement=='|' || carTraitement=='@')
         {
-            printf("| ou @\n");
-            printf("rempli : %d\n", caseRempli);
             if(caseRempli == 0)
             {
                 state* mot2 = depiler(traite);
                 state* mot1 = depiler(traite);
                 if(nbEx[i+1].c == '\0')
                 {
-                    printf("Fini\n");
                     state** res = malloc(sizeof(state*) * 3);
                     res[0] = mot1;
                     res[1] = mot2;
@@ -155,11 +211,11 @@ state** match_with(state* nbEx)
             }
             else if(caseRempli == 1)
             {
-                printf("test\n");
+           
                 state* mot1 = depiler(traite);
                 if(nbEx[i+1].c == '\0')
                 {
-                    printf("fini\n");
+             
                     state** res = malloc(sizeof(state*) * 3);
                     res[0] = mot1;
                     res[1] = create_state_from_car(traitement[0]);
@@ -211,7 +267,7 @@ state** match_with(state* nbEx)
         }
         else if(carTraitement=='*' || carTraitement=='?')
         {
-            printf("Kleene\n");
+         
             if(caseRempli == 0)
             {
                 state* mot1 = depiler(traite);
@@ -292,7 +348,6 @@ state** match_with(state* nbEx)
         }
         else
         {
-            printf("Lettre\n");
             traitement[caseRempli] = nbEx[i];
             caseRempli++;
             if(nbEx[i+1].c == '\0')
@@ -341,21 +396,101 @@ state* numberEx(char* regex){
 }
 
 maillon1* premiers(state* numberRegex){
-    state** match = match_with(numberRegex);
-    maillon1* res;
-    return res;
+    maillon1* res = NULL; 
+
+    if(numberRegex[0].c == '\0')
+    {
+        return res;
+    }
+    else if(numberRegex[1].c == '\0')
+    {
+        res = malloc(sizeof(maillon1));
+        res->val = malloc(sizeof(state));
+        res->val->c = numberRegex[0].c;
+        res->val->index = numberRegex[0].index;
+        res->val->voisins = numberRegex[0].voisins;
+        res->next = NULL;
+        return res;
+    }
+    else
+    {
+        state** match = match_with(numberRegex);
+        if(match[2][0].c == '@')
+        {
+            if(match[0][longueurMot(match[0])-1].c == '*' || match[0][longueurMot(match[0])-1].c == '?')
+            {
+                return unionMaillon1(premiers(match[0]), premiers(match[1]));
+            }
+            else
+            {
+                return premiers(match[0]);
+            }
+        }
+        else if(match[2][0].c == '|')
+        {
+            return unionMaillon1(premiers(match[0]), premiers(match[1]));
+        }
+        else
+        {
+            return premiers(match[0]);
+        }
+    }
 }
 
 maillon1* derniers(state* numberRegex){
     //Léo
     maillon1* res;
+    return NULL;
+}
+
+maillon2* ensembleDernPrem(state* u, state* v)
+{
+    maillon2* res = NULL;
+    maillon1* dern = derniers(u);
+    maillon1* prem = premiers(v);
+
+    maillon1* currentDern = dern;
+    maillon1* currentPrem = prem;
+    while(currentDern != NULL)
+    {
+        while(currentPrem != NULL)
+        {
+            addMaillon2(res, currentDern->val, currentPrem->val);
+            currentPrem = currentPrem->next;
+        }
+        currentDern = currentDern->next;
+    }
+    
     return res;
 }
 
-maillon2* facteurs(state* numberRegex){
-    //Nathan
-    maillon2* res;
-    return res;
+maillon2* facteurs(state* numberRegex)
+{
+
+    if(numberRegex[0].c == '\0' || numberRegex[1].c == '\0')
+    {
+        return NULL;
+    }
+    else
+    {
+        state** match = match_with(numberRegex);
+        if(match[2][0].c == '@')
+        {
+            return unionMaillon2(facteurs(match[0]), unionMaillon2(facteurs(match[0]), ensembleDernPrem(match[0], match[1])));
+        }
+        else if(match[2][0].c == '|')
+        {
+            return unionMaillon2(facteurs(match[0]), facteurs(match[1]));
+        }
+        else if(match[2][0].c == '*')
+        {
+            return unionMaillon2(facteurs(match[0]), ensembleDernPrem(match[0], match[0]));
+        }
+        else
+        {
+            return facteurs(match[0]);
+        }
+    }
 }
 
 automate build(maillon1* p, maillon1* d, maillon2* f){
@@ -380,6 +515,26 @@ void print_state(state* mot)
     printf("\n");
 }
 
+void print_maillon1(maillon1* ensemble)
+{
+    maillon1* current = ensemble;
+    while(current != NULL)
+    {
+        printf("%c\n", current->val->c);
+        current = current->next;
+    }
+}
+
+void print_maillon2(maillon2* ensemble)
+{
+    maillon2* current = ensemble;
+    while(current != NULL)
+    {
+        printf("%c%c\n", current->depart->c, current->arrivee->c);
+        current = current->next;
+    }
+}
+
 int main(){
     state a;
     a.c = 'a';
@@ -402,15 +557,26 @@ int main(){
     fin.voisins = NULL;
 
     state test[4] = {a,b,arobase,fin};
-    state* test2 = numberEx("ab|a|");
+    state* test2 = numberEx("ab@");
 
+    printf("Expr de base : \n");
     print_state(test2);
+    printf("\n");
 
-    state** match = match_with(test2);
-    
+    /*state** match = match_with(test2);
+    printf("Match : \n");
     print_state(match[0]);
     print_state(match[1]);
-    printf("%c\n", match[2][0].c);
+    printf("%c\n\n", match[2][0].c);
+    printf("\n");*/
+
+    printf("Premiers : \n");
+    print_maillon1(premiers(test2));
+    printf("\n");
+
+    printf("Facteurs : \n");
+    print_maillon2(ensembleDernPrem(test, test2));
+    printf("\n");
 
 
 }
