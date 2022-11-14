@@ -230,7 +230,7 @@ state** match_with(state* nbEx)
              
                     state** res = malloc(sizeof(state*) * 3);
                     res[0] = mot1;
-                    res[1] = create_state_from_car(traitement[0]);
+                    res[1] = create_stateEtoile_from_state(traitement[0]);
                     res[2] = &nbEx[i];
                     return res;
                 }
@@ -257,8 +257,8 @@ state** match_with(state* nbEx)
                 if(nbEx[i+1].c == '\0')
                 {
                     state** res = malloc(sizeof(state*) * 3);
-                    res[0] = create_state_from_car(traitement[0]);
-                    res[1] = create_state_from_car(traitement[1]);
+                    res[0] = create_stateEtoile_from_state(traitement[0]);
+                    res[1] = create_stateEtoile_from_state(traitement[1]);
                     res[2] = &nbEx[i];
                     return res;
                 }
@@ -315,7 +315,7 @@ state** match_with(state* nbEx)
                 if(nbEx[i+1].c == '\0')
                 {
                     state** res = malloc(sizeof(state*) * 3);
-                    res[0] = create_state_from_car(traitement[0]);
+                    res[0] = create_stateEtoile_from_state(traitement[0]);
                     res[1] = NULL;
                     res[2] = &nbEx[i];
                     return res;
@@ -339,7 +339,7 @@ state** match_with(state* nbEx)
                 if(nbEx[i+1].c == '\0')
                 {
                     state** res = malloc(sizeof(state*) * 3);
-                    res[0] = create_state_from_car(traitement[1]);
+                    res[0] = create_stateEtoile_from_state(traitement[1]);
                     res[1] = NULL;
                     res[2] = &nbEx[i];
                     return res;
@@ -365,7 +365,7 @@ state** match_with(state* nbEx)
             if(nbEx[i+1].c == '\0')
             {
                 state** res = malloc(sizeof(state*) * 3);
-                res[0] = create_state_from_car(traitement[caseRempli]);
+                res[0] = create_stateEtoile_from_state(traitement[caseRempli]);
                 res[1] = NULL;
                 res[2] = &nbEx[i];
                 return res;
