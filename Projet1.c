@@ -72,15 +72,27 @@ state* depiler(pile* p)
     }
 }
 
-void addMaillon1(maillon1* first, state* new){
-    maillon1* current = first;
-    while(current->next != NULL)
+maillon1* addMaillon1(maillon1* first, state* new){
+
+    if(first == NULL)
     {
-        current = current->next;
+        first = malloc(sizeof(maillon1));
+        first->next = NULL;
+        first->val = new;
     }
-    current->next = malloc(sizeof(maillon1));
-    current->next->next = NULL;
-    current->next->val = new;
+    else
+    {
+        maillon1* current = first;
+        while(current->next != NULL)
+        {
+            current = current->next;
+        }
+        current->next = malloc(sizeof(maillon1));
+        current->next->next = NULL;
+        current->next->val = new;
+    }   
+    return first;
+    
 }
 
 maillon1* unionMaillon1(maillon1* u, maillon1* v)
@@ -526,9 +538,46 @@ automate build(maillon1* p, maillon1* d, maillon2* f){
     return res;
 }
 
-bool appartient(automate a, char* mot){
-    //Nathan
-    return false;
+bool appartienMaillon1(state* s, maillon1* d)
+{
+    maillon1* current = d;
+    while(current!= NULL)
+    {
+        if(current->val == s)
+        {
+            return true;
+        }
+        current = current->next;
+    }
+}
+
+bool reconnu(automate a, char* mot){
+    if(mot[0] == '\0')
+    {
+        return appartienMaillon1(a.debut, a.fin);
+    }
+    else
+    {
+        maillon1* current = a.debut->voisins;
+        while(current!= NULL)
+        {
+            if(current->val->c == mot[0])
+            {
+                automate new;
+                new.debut = current->val;
+                new.fin = a.fin;
+                if(reconnu(new, &mot[1]))
+                {
+                    return true;
+                }
+
+            }
+            
+            current = current->next;
+        }
+        return false;
+    }
+  
 }
 
 void print_state(state* mot)
@@ -563,20 +612,51 @@ void print_maillon2(maillon2* ensemble)
 }
 
 int main(){
+
     state a;
+    state b;
+    state c;
+    state epsilon;
+
     a.c = 'a';
     a.index = 0;
     a.voisins = NULL;
+    a.voisins = addMaillon1(a.voisins, &a);
+    a.voisins = addMaillon1(a.voisins, &b);
+    a.voisins = addMaillon1(a.voisins, &c);
 
-    state b;
+
     b.c = 'b';
     b.index = 1;
     b.voisins = NULL;
+    b.voisins = addMaillon1(b.voisins, &a);
+    b.voisins = addMaillon1(b.voisins, &b);
+    b.voisins = addMaillon1(b.voisins, &c);
+        
+    c.c = 'c';
+    c.index = 2;
+    c.voisins = NULL;
+
+    epsilon.c = 'e';
+    epsilon.index = '2';
+    epsilon.voisins = NULL;
+    epsilon.voisins = addMaillon1(epsilon.voisins, &a);
+    epsilon.voisins = addMaillon1(epsilon.voisins, &b);
+    epsilon.voisins = addMaillon1(epsilon.voisins, &c);
+
+    automate automateTest;
+    automateTest.debut = &epsilon;
+    automateTest.fin = NULL;
+    automateTest.fin = addMaillon1(automateTest.fin, &a);
+    automateTest.fin = addMaillon1(automateTest.fin, &c);
+
 
     state arobase;
     arobase.c = '@';
     arobase.index = -1;
     arobase.voisins = NULL;
+
+
 
     state fin;
     fin.c = '\0';
@@ -604,6 +684,18 @@ int main(){
     printf("Facteurs : \n");
     print_maillon2(ensembleDernPrem(test, test2));
     printf("\n");
+
+    printf("Reconnu : \n");
+    if(reconnu(automateTest, "aab"))
+    {
+        printf("true");
+    }
+    else
+    {
+        printf("false");
+    }
+    printf("\n");
+    
 
 
 }
