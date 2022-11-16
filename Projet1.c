@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <assert.h>
 
+#define MAX_LINE_LENGTH 1024
+
 struct state;
 
 struct couche {
@@ -611,8 +613,7 @@ void print_maillon2(maillon2* ensemble)
     }
 }
 
-int main(){
-
+int main(int argc, char* argv[]){
     state a;
     state b;
     state c;
@@ -685,16 +686,20 @@ int main(){
     print_maillon2(ensembleDernPrem(test, test2));
     printf("\n");
 
-    printf("Reconnu : \n");
-    if(reconnu(automateTest, "aab"))
-    {
-        printf("true");
+    FILE* in = fopen(argv[1], "r");
+    char* line = malloc((MAX_LINE_LENGTH + 1) * sizeof(char));
+    while (true) {
+        if (fgets(line, MAX_LINE_LENGTH, in) == NULL) break;
+        int i = 0; 
+        while(line[i] != '\0')
+        {
+            i++;
+        }
+        line[i-1] = '\0';
+        if (reconnu(automateTest, line)) {
+            puts(line);
+        }
     }
-    else
-    {
-        printf("false");
-    }
-    printf("\n");
     
 
 
