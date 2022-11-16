@@ -1,3 +1,4 @@
+
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
@@ -45,7 +46,6 @@ typedef struct maillon1 maillon1;
 typedef struct maillon2 maillon2;
 typedef struct state state;
 typedef struct automate automate;
-
 
 pile* create_pile_vide()
 {
@@ -216,7 +216,6 @@ state** match_with(state* nbEx)
     match[0] : (a|b) -> ab|
     match[1] : ab -> ab@
     match[2] : @
-
     L'algo fonctionne grace a un tableau de trois state qui represente les caractere entrain d'etre traite
     et grace a une pile d'expression (tableau de state) qui represente les expression deja traite
     */
