@@ -72,7 +72,7 @@ state* depiler(pile* p)
     }
 }
 
-void addMaillon1(maillon1* first, state* new){
+maillon1* addMaillon1(maillon1* first, state* new){
     maillon1* current = first;
     while(current->next != NULL)
     {
@@ -516,10 +516,40 @@ maillon2* facteurs(state* numberRegex)
     }
 }
 
-automate build(maillon1* p, maillon1* d, maillon2* f){
+automate build(state* numberRegex){
     //Léo
     automate res;
+
+    maillon1* p = premiers(numberRegex);
+    maillon1* d = derniers(numberRegex);
+    maillon2* f = facteurs(numberRegex);
+
+    state* debut = malloc(sizeof(state));
+    debut->c=1;
+    debut->index=-1;
+    debut->voisins=p;
+
+    maillon1* etats = NULL;
+    while(numberRegex->c != '\0'){
+        if(numberRegex->index != -1){
+            etats = addMaillon1(etats, numberRegex);
+        }
+    }
     
+    while(f!=NULL){
+        f->depart->voisins = addMaillon1(f->depart->voisins, f->arrivee);
+        f=f->next;
+    }
+
+    maillon1* fin = NULL;
+    while(d!=NULL){
+        fin = addMaillon1(fin, d->val);
+        d=d->next;
+    }
+
+    res.debut=debut;
+    res.fin=fin;
+
     return res;
 }
 
@@ -574,14 +604,14 @@ int main(){
     arobase.c = '@';
     arobase.index = -1;
     arobase.voisins = NULL;
-    
+
     state fin;
     fin.c = '\0';
     fin.index = -1;
     fin.voisins = NULL;
 
     state test[4] = {a,b,arobase,fin};
-    state* test2 = numberEx("ab|*cd@*@");
+    state* test2 = numberEx("ab|*ab@*@");
 
     printf("Expr de base : \n");
     print_state(test2);
