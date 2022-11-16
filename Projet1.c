@@ -109,7 +109,7 @@ maillon1* unionMaillon1(maillon1* u, maillon1* v)
     
 }
 
-void addMaillon2(maillon2* first, state* depart, state* arrivee){
+maillon2* addMaillon2(maillon2* first, state* depart, state* arrivee){
 
     if(first == NULL)
     {
@@ -130,7 +130,7 @@ void addMaillon2(maillon2* first, state* depart, state* arrivee){
         current->next->depart = depart;
         current->next->arrivee = arrivee;
     }
-    
+    return first;
 }
 
 maillon2* unionMaillon2(maillon2* u, maillon2* v)
@@ -148,6 +148,37 @@ maillon2* unionMaillon2(maillon2* u, maillon2* v)
         }
         current->next = v;
         return u;
+    }
+}
+
+void print_state(state* mot)
+{
+    int i = 0;
+    while(mot[i].c != '\0')
+    {
+        printf("%c", mot[i].c);
+        i++;
+    }
+    printf("\n");
+}
+
+void print_maillon1(maillon1* ensemble)
+{
+    maillon1* current = ensemble;
+    while(current != NULL)
+    {
+        printf("%c%d\n", current->val->c, current->val->index);
+        current = current->next;
+    }
+}
+
+void print_maillon2(maillon2* ensemble)
+{
+    maillon2* current = ensemble;
+    while(current != NULL)
+    {
+        printf("%c%d%c%d\n", current->depart->c, current->depart->index, current->arrivee->c,  current->arrivee->index);
+        current = current->next;
     }
 }
 
@@ -469,9 +500,31 @@ maillon1* premiers(state* numberRegex){
 }
 
 maillon1* derniers(state* numberRegex){
-    //Léo
-    maillon1* res;
-    return NULL;
+    maillon1* res = NULL;
+    if(numberRegex[0].c=='\0'){
+        return res;
+    }else if(numberRegex[1].c=='\0'){
+        res = malloc(sizeof(maillon1));
+        res->val = malloc(sizeof(state));
+        res->val->c = numberRegex[0].c;
+        res->val->index = numberRegex[0].index;
+        res->val->voisins = numberRegex[0].voisins;
+        res->next = NULL;
+        return res;
+    }else{
+        state** match = match_with(numberRegex);
+        if(match[2][0].c=='|'){
+            return unionMaillon1(derniers(match[0]), derniers(match[1]));
+        } else if(match[2][0].c=='@'){
+            if(match[1][longueurMot(match[1])-1].c == '*' || match[1][longueurMot(match[1])-1].c == '?'){
+                return unionMaillon1(derniers(match[0]), derniers(match[1]));
+            } else {
+                return derniers(match[1]);
+            }
+        }else {
+            return derniers(match[0]);
+        }
+    }
 }
 
 maillon2* ensembleDernPrem(state* u, state* v)
@@ -487,12 +540,13 @@ maillon2* ensembleDernPrem(state* u, state* v)
     maillon1* prem = premiers(v);
 
     maillon1* currentDern = dern;
-    maillon1* currentPrem = prem;
+    
     while(currentDern != NULL)
     {
+        maillon1* currentPrem = prem;
         while(currentPrem != NULL)
         {
-            addMaillon2(res, currentDern->val, currentPrem->val);
+            res = addMaillon2(res, currentDern->val, currentPrem->val);
             currentPrem = currentPrem->next;
         }
         currentDern = currentDern->next;
@@ -534,9 +588,25 @@ maillon2* facteurs(state* numberRegex)
     }
 }
 
-automate build(maillon1* p, maillon1* d, maillon2* f){
-    //Léo
+automate build(state* numberRegex){
     automate res;
+
+    maillon1* p = premiers(numberRegex);
+    maillon1* d = derniers(numberRegex);
+    maillon2* f = facteurs(numberRegex);
+
+    state* debut = malloc(sizeof(state));
+    debut->c=1;
+    debut->index=-1;
+    debut->voisins=p;
+   
+    while(f!=NULL){
+        f->depart->voisins = addMaillon1(f->depart->voisins, f->arrivee);
+        f=f->next;
+    }
+
+    res.debut=debut;
+    res.fin=d;
     return res;
 }
 
@@ -545,7 +615,7 @@ bool appartienMaillon1(state* s, maillon1* d)
     maillon1* current = d;
     while(current!= NULL)
     {
-        if(current->val == s)
+        if(current->val->c == s->c && current->val->index == s->index)
         {
             return true;
         }
@@ -560,10 +630,11 @@ bool reconnu(automate a, char* mot){
     }
     else
     {
+        
         maillon1* current = a.debut->voisins;
         while(current!= NULL)
         {
-            if(current->val->c == mot[0])
+            if(current->val->c == mot[0] || current->val->c == '.')
             {
                 automate new;
                 new.debut = current->val;
@@ -582,36 +653,6 @@ bool reconnu(automate a, char* mot){
   
 }
 
-void print_state(state* mot)
-{
-    int i = 0;
-    while(mot[i].c != '\0')
-    {
-        printf("%c", mot[i].c);
-        i++;
-    }
-    printf("\n");
-}
-
-void print_maillon1(maillon1* ensemble)
-{
-    maillon1* current = ensemble;
-    while(current != NULL)
-    {
-        printf("%c\n", current->val->c);
-        current = current->next;
-    }
-}
-
-void print_maillon2(maillon2* ensemble)
-{
-    maillon2* current = ensemble;
-    while(current != NULL)
-    {
-        printf("%c%c\n", current->depart->c, current->arrivee->c);
-        current = current->next;
-    }
-}
 
 int main(int argc, char* argv[]){
     state a;
@@ -665,7 +706,7 @@ int main(int argc, char* argv[]){
     fin.voisins = NULL;
 
     state test[4] = {a,b,arobase,fin};
-    state* test2 = numberEx("ab@");
+    state* test2 = numberEx("ab|");
 
     printf("Expr de base : \n");
     print_state(test2);
@@ -682,11 +723,18 @@ int main(int argc, char* argv[]){
     print_maillon1(premiers(test2));
     printf("\n");
 
-    printf("Facteurs : \n");
-    print_maillon2(ensembleDernPrem(test, test2));
+    printf("Derniers : \n");
+    print_maillon1(derniers(test2));
     printf("\n");
 
-    FILE* in = fopen(argv[1], "r");
+    printf("Facteurs : \n");
+    print_maillon2(facteurs(test2));
+    printf("\n");
+
+    state* exNum = numberEx(argv[1]);
+    automate au = build(exNum);
+
+    FILE* in = fopen(argv[2], "r");
     char* line = malloc((MAX_LINE_LENGTH + 1) * sizeof(char));
     while (true) {
         if (fgets(line, MAX_LINE_LENGTH, in) == NULL) break;
@@ -696,11 +744,13 @@ int main(int argc, char* argv[]){
             i++;
         }
         line[i-1] = '\0';
-        if (reconnu(automateTest, line)) {
+        if (reconnu(au, line)) {
             puts(line);
         }
     }
+    fclose(in);
+    free(line);
     
-
+    return 0;
 
 }
