@@ -201,7 +201,7 @@ state** create_stateEtoile_from_state(state* c)
     //Cette fonction prend en argument un state c et retourne le tableau de state contenant c et le state vide
     state** res = malloc(sizeof(state*) * 2);
     res[0] = c;
-    res[1]->c = '\0';
+    res[1] = malloc(sizeof(state));
     res[1]->index = -1;
     res[1]->voisins = NULL;
     return res;
@@ -268,8 +268,10 @@ state*** match_with(state** nbEx)
             }
             else if(caseRempli == 1)
             {
+                printf("Apres je vais me couvher");
            
                 state** mot1 = depiler(traite);
+                print_state(mot1);
                 if(nbEx[i+1]->c == '\0')
                 {
              
@@ -438,8 +440,6 @@ state** numberEx(char* regex){
         }
         i++;
     }
-    printf("1\n");
-
     printf("n : %d\n", n);
     
 
@@ -448,14 +448,9 @@ state** numberEx(char* regex){
     int index = 0;
     
     for(i=0; i<n+1; i++){
-        printf("2\n");
         res[i] = malloc(sizeof(state));
-        printf("4\n");
     }
-    printf("3\n");
     for(i=0; i<n; i++){
-
-        printf("%d", i);
         if(regex[avancement]=='|' || regex[avancement]=='@' || regex[avancement]=='*' || regex[avancement]=='?'){
             res[i]->index=-1;
             res[i]->c=regex[avancement];
@@ -482,7 +477,6 @@ state** numberEx(char* regex){
             i--;
         }
         else {
-            printf("lettre\n");
             res[i]->index=index;
             index++;
             res[i]->c=regex[avancement];
@@ -491,11 +485,9 @@ state** numberEx(char* regex){
         avancement++;
         
     }
-    printf("dernier\n");
     res[n]->c='\0';
     res[n]->index=-1;
     res[n]->voisins=NULL;
-    printf("Fin ");
     return res;
 }
 
@@ -669,7 +661,6 @@ bool appartienMaillon1(state* s, maillon1* d)
 bool reconnu(automate a, char* mot){
     if(mot[0] == '\0')
     {
-        printf("fin\n");
         return appartienMaillon1(a.debut, a.fin);
     }
     else
@@ -765,7 +756,7 @@ int main(int argc, char* argv[]){
     print_state(match[1]);
     printf("%c\n\n", match[2][0]->c);
     printf("\n");
-/*
+
     printf("Premiers : \n");
     print_maillon1(premiers(exNum));
     printf("\n");
@@ -776,15 +767,15 @@ int main(int argc, char* argv[]){
 
     printf("Facteurs : \n");
     print_maillon2(facteurs(exNum));
-    printf("\n");*/
+    printf("\n");
 
-   /* automate au = build(exNum);
+   automate au = build(exNum);
 
     printf("voisins premier : %c",au.debut->voisins->val->voisins->val->c);
 
     if (reconnu(au, "salut")) {
         printf("true\n");
-    }*/
+    }
 
 
     /*
