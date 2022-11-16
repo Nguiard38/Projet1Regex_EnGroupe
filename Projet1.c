@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <assert.h>
 
+#define MAX_LINE_LENGTH 1024
+
 struct state;
 
 struct couche {
@@ -72,15 +74,27 @@ state* depiler(pile* p)
     }
 }
 
-void addMaillon1(maillon1* first, state* new){
-    maillon1* current = first;
-    while(current->next != NULL)
+maillon1* addMaillon1(maillon1* first, state* new){
+
+    if(first == NULL)
     {
-        current = current->next;
+        first = malloc(sizeof(maillon1));
+        first->next = NULL;
+        first->val = new;
     }
-    current->next = malloc(sizeof(maillon1));
-    current->next->next = NULL;
-    current->next->val = new;
+    else
+    {
+        maillon1* current = first;
+        while(current->next != NULL)
+        {
+            current = current->next;
+        }
+        current->next = malloc(sizeof(maillon1));
+        current->next->next = NULL;
+        current->next->val = new;
+    }   
+    return first;
+    
 }
 
 maillon1* unionMaillon1(maillon1* u, maillon1* v)
@@ -95,7 +109,7 @@ maillon1* unionMaillon1(maillon1* u, maillon1* v)
     
 }
 
-void addMaillon2(maillon2* first, state* depart, state* arrivee){
+maillon2* addMaillon2(maillon2* first, state* depart, state* arrivee){
 
     if(first == NULL)
     {
@@ -116,7 +130,7 @@ void addMaillon2(maillon2* first, state* depart, state* arrivee){
         current->next->depart = depart;
         current->next->arrivee = arrivee;
     }
-    
+    return first;
 }
 
 maillon2* unionMaillon2(maillon2* u, maillon2* v)
@@ -137,6 +151,37 @@ maillon2* unionMaillon2(maillon2* u, maillon2* v)
     }
 }
 
+void print_state(state* mot)
+{
+    int i = 0;
+    while(mot[i].c != '\0')
+    {
+        printf("%c", mot[i].c);
+        i++;
+    }
+    printf("\n");
+}
+
+void print_maillon1(maillon1* ensemble)
+{
+    maillon1* current = ensemble;
+    while(current != NULL)
+    {
+        printf("%c%d\n", current->val->c, current->val->index);
+        current = current->next;
+    }
+}
+
+void print_maillon2(maillon2* ensemble)
+{
+    maillon2* current = ensemble;
+    while(current != NULL)
+    {
+        printf("%c%d%c%d\n", current->depart->c, current->depart->index, current->arrivee->c,  current->arrivee->index);
+        current = current->next;
+    }
+}
+
 void freeAutomate(automate a){
 }
 
@@ -150,8 +195,9 @@ int longueurMot(state* mot)
     return n;
 }
 
-state* create_state_from_car(state c)
+state* create_stateEtoile_from_state(state c)
 {
+    //Cette fonction prend en argument un state c et retourne le tableau de state contenant c et le state vide
     state* res = malloc(sizeof(state) * 2);
     res[0] = c;
     res[1].c = '\0';
@@ -162,6 +208,17 @@ state* create_state_from_car(state c)
 
 state** match_with(state* nbEx)
 {
+    /*
+    Cette fonction prend en argument une expression (un tableau de state) et retourne le tableau contenant le match de cette expression
+    
+    EX : (a|b)(ab) -> ab|ab@@
+    match[0] : (a|b) -> ab|
+    match[1] : ab -> ab@
+    match[2] : @
+
+    L'algo fonctionne grace a un tableau de trois state qui represente les caractere entrain d'etre traite
+    et grace a une pile d'expression (tableau de state) qui represente les expression deja traite
+    */
     pile* traite = create_pile_vide();
     state* traitement = malloc(sizeof(state) * 2);
 
@@ -218,7 +275,7 @@ state** match_with(state* nbEx)
              
                     state** res = malloc(sizeof(state*) * 3);
                     res[0] = mot1;
-                    res[1] = create_state_from_car(traitement[0]);
+                    res[1] = create_stateEtoile_from_state(traitement[0]);
                     res[2] = &nbEx[i];
                     return res;
                 }
@@ -245,8 +302,8 @@ state** match_with(state* nbEx)
                 if(nbEx[i+1].c == '\0')
                 {
                     state** res = malloc(sizeof(state*) * 3);
-                    res[0] = create_state_from_car(traitement[0]);
-                    res[1] = create_state_from_car(traitement[1]);
+                    res[0] = create_stateEtoile_from_state(traitement[0]);
+                    res[1] = create_stateEtoile_from_state(traitement[1]);
                     res[2] = &nbEx[i];
                     return res;
                 }
@@ -303,7 +360,7 @@ state** match_with(state* nbEx)
                 if(nbEx[i+1].c == '\0')
                 {
                     state** res = malloc(sizeof(state*) * 3);
-                    res[0] = create_state_from_car(traitement[0]);
+                    res[0] = create_stateEtoile_from_state(traitement[0]);
                     res[1] = NULL;
                     res[2] = &nbEx[i];
                     return res;
@@ -327,7 +384,7 @@ state** match_with(state* nbEx)
                 if(nbEx[i+1].c == '\0')
                 {
                     state** res = malloc(sizeof(state*) * 3);
-                    res[0] = create_state_from_car(traitement[1]);
+                    res[0] = create_stateEtoile_from_state(traitement[1]);
                     res[1] = NULL;
                     res[2] = &nbEx[i];
                     return res;
@@ -353,7 +410,7 @@ state** match_with(state* nbEx)
             if(nbEx[i+1].c == '\0')
             {
                 state** res = malloc(sizeof(state*) * 3);
-                res[0] = create_state_from_car(traitement[caseRempli]);
+                res[0] = create_stateEtoile_from_state(traitement[caseRempli]);
                 res[1] = NULL;
                 res[2] = &nbEx[i];
                 return res;
@@ -396,6 +453,11 @@ state* numberEx(char* regex){
 }
 
 maillon1* premiers(state* numberRegex){
+    /*
+    Cette fonction prend en argument une expression (tableau de state)
+    Et retourne la liste (maillon chaine) des state qui peuevent etre premieres lettres de l'expression
+    */
+
     maillon1* res = NULL; 
 
     if(numberRegex[0].c == '\0')
@@ -438,24 +500,53 @@ maillon1* premiers(state* numberRegex){
 }
 
 maillon1* derniers(state* numberRegex){
-    //Léo
-    maillon1* res;
-    return NULL;
+    maillon1* res = NULL;
+    if(numberRegex[0].c=='\0'){
+        return res;
+    }else if(numberRegex[1].c=='\0'){
+        res = malloc(sizeof(maillon1));
+        res->val = malloc(sizeof(state));
+        res->val->c = numberRegex[0].c;
+        res->val->index = numberRegex[0].index;
+        res->val->voisins = numberRegex[0].voisins;
+        res->next = NULL;
+        return res;
+    }else{
+        state** match = match_with(numberRegex);
+        if(match[2][0].c=='|'){
+            return unionMaillon1(derniers(match[0]), derniers(match[1]));
+        } else if(match[2][0].c=='@'){
+            if(match[1][longueurMot(match[1])-1].c == '*' || match[1][longueurMot(match[1])-1].c == '?'){
+                return unionMaillon1(derniers(match[0]), derniers(match[1]));
+            } else {
+                return derniers(match[1]);
+            }
+        }else {
+            return derniers(match[0]);
+        }
+    }
 }
 
 maillon2* ensembleDernPrem(state* u, state* v)
 {
+
+    /*
+    Cette fonction prend en argument deux expressions u et v (tableau de state) et renvoie 
+    l'ensemble des facteurs possible que forment la concatenation de u et v en utilisant les derniers de u et les premiers de v
+    */
+
     maillon2* res = NULL;
     maillon1* dern = derniers(u);
     maillon1* prem = premiers(v);
 
     maillon1* currentDern = dern;
-    maillon1* currentPrem = prem;
+    
     while(currentDern != NULL)
     {
+        maillon1* currentPrem = prem;
         while(currentPrem != NULL)
         {
-            addMaillon2(res, currentDern->val, currentPrem->val);
+            res = addMaillon2(res, currentDern->val, currentPrem->val);
             currentPrem = currentPrem->next;
         }
         currentDern = currentDern->next;
@@ -466,6 +557,10 @@ maillon2* ensembleDernPrem(state* u, state* v)
 
 maillon2* facteurs(state* numberRegex)
 {
+    /*
+    Cette fonction prend en argument une expression (tableau de state)
+    Et retourne la liste (maillon chaine) des couples de state qui sont facteur de l'expression
+    */
 
     if(numberRegex[0].c == '\0' || numberRegex[1].c == '\0')
     {
@@ -493,63 +588,117 @@ maillon2* facteurs(state* numberRegex)
     }
 }
 
-automate build(maillon1* p, maillon1* d, maillon2* f){
-    //Léo
+automate build(state* numberRegex){
     automate res;
+
+    maillon1* p = premiers(numberRegex);
+    maillon1* d = derniers(numberRegex);
+    maillon2* f = facteurs(numberRegex);
+
+    state* debut = malloc(sizeof(state));
+    debut->c=1;
+    debut->index=-1;
+    debut->voisins=p;
+   
+    while(f!=NULL){
+        f->depart->voisins = addMaillon1(f->depart->voisins, f->arrivee);
+        f=f->next;
+    }
+
+    res.debut=debut;
+    res.fin=d;
     return res;
 }
 
-bool appartient(automate a, char* mot){
-    //Nathan
-    return false;
-}
-
-void print_state(state* mot)
+bool appartienMaillon1(state* s, maillon1* d)
 {
-    int i = 0;
-    while(mot[i].c != '\0')
+    maillon1* current = d;
+    while(current!= NULL)
     {
-        printf("%c", mot[i].c);
-        i++;
-    }
-    printf("\n");
-}
-
-void print_maillon1(maillon1* ensemble)
-{
-    maillon1* current = ensemble;
-    while(current != NULL)
-    {
-        printf("%c\n", current->val->c);
+        if(current->val->c == s->c && current->val->index == s->index)
+        {
+            return true;
+        }
         current = current->next;
     }
 }
 
-void print_maillon2(maillon2* ensemble)
-{
-    maillon2* current = ensemble;
-    while(current != NULL)
+bool reconnu(automate a, char* mot){
+    if(mot[0] == '\0')
     {
-        printf("%c%c\n", current->depart->c, current->arrivee->c);
-        current = current->next;
+        return appartienMaillon1(a.debut, a.fin);
     }
+    else
+    {
+        
+        maillon1* current = a.debut->voisins;
+        while(current!= NULL)
+        {
+            if(current->val->c == mot[0] || current->val->c == '.')
+            {
+                automate new;
+                new.debut = current->val;
+                new.fin = a.fin;
+                if(reconnu(new, &mot[1]))
+                {
+                    return true;
+                }
+
+            }
+            
+            current = current->next;
+        }
+        return false;
+    }
+  
 }
 
-int main(){
+
+int main(int argc, char* argv[]){
     state a;
+    state b;
+    state c;
+    state epsilon;
+
     a.c = 'a';
     a.index = 0;
     a.voisins = NULL;
+    a.voisins = addMaillon1(a.voisins, &a);
+    a.voisins = addMaillon1(a.voisins, &b);
+    a.voisins = addMaillon1(a.voisins, &c);
 
-    state b;
+
     b.c = 'b';
     b.index = 1;
     b.voisins = NULL;
+    b.voisins = addMaillon1(b.voisins, &a);
+    b.voisins = addMaillon1(b.voisins, &b);
+    b.voisins = addMaillon1(b.voisins, &c);
+        
+    c.c = 'c';
+    c.index = 2;
+    c.voisins = NULL;
+
+    epsilon.c = 'e';
+    epsilon.index = '2';
+    epsilon.voisins = NULL;
+    epsilon.voisins = addMaillon1(epsilon.voisins, &a);
+    epsilon.voisins = addMaillon1(epsilon.voisins, &b);
+    epsilon.voisins = addMaillon1(epsilon.voisins, &c);
+
+    automate automateTest;
+    automateTest.debut = &epsilon;
+    automateTest.fin = NULL;
+    automateTest.fin = addMaillon1(automateTest.fin, &a);
+    automateTest.fin = addMaillon1(automateTest.fin, &c);
+
 
     state arobase;
     arobase.c = '@';
     arobase.index = -1;
     arobase.voisins = NULL;
+
+
 
     state fin;
     fin.c = '\0';
@@ -557,7 +706,7 @@ int main(){
     fin.voisins = NULL;
 
     state test[4] = {a,b,arobase,fin};
-    state* test2 = numberEx("ab@");
+    state* test2 = numberEx("ab|");
 
     printf("Expr de base : \n");
     print_state(test2);
@@ -574,9 +723,34 @@ int main(){
     print_maillon1(premiers(test2));
     printf("\n");
 
-    printf("Facteurs : \n");
-    print_maillon2(ensembleDernPrem(test, test2));
+    printf("Derniers : \n");
+    print_maillon1(derniers(test2));
     printf("\n");
 
+    printf("Facteurs : \n");
+    print_maillon2(facteurs(test2));
+    printf("\n");
+
+    state* exNum = numberEx(argv[1]);
+    automate au = build(exNum);
+
+    FILE* in = fopen(argv[2], "r");
+    char* line = malloc((MAX_LINE_LENGTH + 1) * sizeof(char));
+    while (true) {
+        if (fgets(line, MAX_LINE_LENGTH, in) == NULL) break;
+        int i = 0; 
+        while(line[i] != '\0')
+        {
+            i++;
+        }
+        line[i-1] = '\0';
+        if (reconnu(au, line)) {
+            puts(line);
+        }
+    }
+    fclose(in);
+    free(line);
+    
+    return 0;
 
 }
