@@ -274,8 +274,8 @@ state*** match_with(state** nbEx)
                 if(nbEx[i+1]->c == '\0')
                 {
                     state*** res = malloc(sizeof(state**) * 3);
-                    res[0] = mot1;
-                    res[1] = create_stateEtoile_from_state(traitement[0]);
+                    res[0] = create_stateEtoile_from_state(traitement[0]);
+                    res[1] = mot1;
                     res[2] = &nbEx[i];
                     return res;
                 }
@@ -395,7 +395,7 @@ state*** match_with(state** nbEx)
                     state** new= malloc(sizeof(state*) * 3);
                     new[0] = traitement[1];
                     new[1] = nbEx[i];
-                    new[1] = malloc(sizeof(state));
+                    new[2] = malloc(sizeof(state));
                     new[2]->c = '\0';
                     new[2]->index = -1;
                     new[2]->voisins = NULL;
@@ -426,62 +426,30 @@ state** numberEx(char* regex){
     //Léo
     //Elle prend un regex écrit en postfixe et renvoie le tableau des états numérotés
 
-    int i = 0;
     int n = 0;
-    while (regex[i] != '\0') {
-        if(regex[i] == '.')
-        {
-            n = n +51;
-        }
-        else
-        {
-            n++;
-        }
-        i++;
+    while (regex[n] != '\0') {
+        n++;
     }
     printf("n : %d\n", n);
     
 
     state** res = malloc(sizeof(state*) * (n+1));
-    int avancement = 0;
     int index = 0;
     
-    for(i=0; i<n+1; i++){
+    for(int i=0; i<n+1; i++){
         res[i] = malloc(sizeof(state));
     }
-    for(i=0; i<n; i++){
-        if(regex[avancement]=='|' || regex[avancement]=='@' || regex[avancement]=='*' || regex[avancement]=='?'){
+    for(int i=0; i<n; i++){
+        if(regex[i]=='|' || regex[i]=='@' || regex[i]=='*' || regex[i]=='?'){
             res[i]->index=-1;
-            res[i]->c=regex[avancement];
+            res[i]->c=regex[i];
             res[i]->voisins=NULL;
-        } else if(regex[avancement] == '.')
-        {
-            res[i]->c = (char)97;
-            res[i]->index = index;
-            res[i]->voisins = NULL;
-            index++;
-            i++;
-            for(int j = 98; j < 123; j++)
-            {
-                res[i]->c = (char)j;
-                res[i]->index = index;
-                res[i]->voisins = NULL;
-                index++;
-                i++;
-                res[i]->c = '|';
-                res[i]->index = -1;
-                res[i]->voisins = NULL;
-                i++;
-            }
-            i--;
-        }
-        else {
+        } else {
             res[i]->index=index;
             index++;
-            res[i]->c=regex[avancement];
+            res[i]->c=regex[i];
             res[i]->voisins=NULL;
         }
-        avancement++;
         
     }
     res[n]->c='\0';
@@ -668,7 +636,7 @@ bool reconnu(automate a, char* mot){
         while(current!= NULL)
         {
 
-            if(current->val->c == mot[0])
+            if(current->val->c == mot[0] || current->val->c == '.')
             {
                 automate new;
                 new.debut = current->val;
