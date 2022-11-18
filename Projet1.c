@@ -202,6 +202,7 @@ state** create_stateEtoile_from_state(state* c)
     state** res = malloc(sizeof(state*) * 2);
     res[0] = c;
     res[1] = malloc(sizeof(state));
+    res[1]->c = '\0';
     res[1]->index = -1;
     res[1]->voisins = NULL;
     return res;
@@ -248,18 +249,18 @@ state*** match_with(state** nbEx)
                     state** new= malloc(sizeof(state) * (n1 + n2 + 2));
                     for(int k = 0; k < n1+n2; k++)
                     {
-                        if(k < n1-1)
+                        if(k < n1)
                         {
                             new[k] = mot1[k];
                         }
                         else      
                         {
-                            new[k] = mot2[k];
+                            new[k] = mot2[k-n1];
                         }
                     }
 
                     new[n1 + n2] = nbEx[i];
-
+                    new[n1 + n2 + 1] = malloc(sizeof(state));
                     new[n1 + n2 + 1]->c = '\0';
                     new[n1 + n2 + 1]->index = -1;
                     new[n1 + n2 + 1]->voisins = NULL;
@@ -268,17 +269,25 @@ state*** match_with(state** nbEx)
             }
             else if(caseRempli == 1)
             {
-                printf("Apres je vais me couvher");
            
                 state** mot1 = depiler(traite);
-                print_state(mot1);
                 if(nbEx[i+1]->c == '\0')
                 {
-             
                     state*** res = malloc(sizeof(state**) * 3);
-                    res[0] = mot1;
-                    res[1] = create_stateEtoile_from_state(traitement[0]);
-                    res[2] = &nbEx[i];
+                    if(traitement[0]->index == 0)
+                    {
+                        res[0] = create_stateEtoile_from_state(traitement[0]);
+                        res[1] = mot1;
+                        res[2] = &nbEx[i];
+                    }
+                    else
+                    {
+                        res[0] = mot1;
+                        res[1] = create_stateEtoile_from_state(traitement[0]);
+                        res[2] = &nbEx[i];
+
+                    }
+                    
                     return res;
                 }
                 else
@@ -292,7 +301,7 @@ state*** match_with(state** nbEx)
 
                     new[n1] = traitement[0];
                     new[n1+1] = nbEx[i];
-
+                    new[n1 + 2] = malloc(sizeof(state));
                     new[n1 + 2]->c = '\0';
                     new[n1 + 2]->index = -1;
                     new[n1 + 2]->voisins = NULL;
@@ -316,6 +325,7 @@ state*** match_with(state** nbEx)
                     new[1] = traitement[1];
                     new[2] = nbEx[i];
 
+                    new[3] = malloc(sizeof(state));
                     new[3]->c = '\0';
                     new[3]->index = -1;
                     new[3]->voisins = NULL;
@@ -350,7 +360,7 @@ state*** match_with(state** nbEx)
                     }
 
                     new[n1] = nbEx[i];
-
+                    new[n1 + 1] = malloc(sizeof(state));
                     new[n1 + 1]->c = '\0';
                     new[n1 + 1]->index = -1;
                     new[n1 + 1]->voisins = NULL;
@@ -373,7 +383,7 @@ state*** match_with(state** nbEx)
 
                     new[0] = traitement[0];
                     new[1] = nbEx[i];
-
+                    new[2] = malloc(sizeof(state));
                     new[2]->c = '\0';
                     new[2]->index = -1;
                     new[2]->voisins = NULL;
@@ -396,7 +406,7 @@ state*** match_with(state** nbEx)
                     state** new= malloc(sizeof(state*) * 3);
                     new[0] = traitement[1];
                     new[1] = nbEx[i];
-
+                    new[2] = malloc(sizeof(state));
                     new[2]->c = '\0';
                     new[2]->index = -1;
                     new[2]->voisins = NULL;
@@ -424,65 +434,32 @@ state*** match_with(state** nbEx)
 }
 
 state** numberEx(char* regex){
-    //Léo
     //Elle prend un regex écrit en postfixe et renvoie le tableau des états numérotés
 
-    int i = 0;
     int n = 0;
-    while (regex[i] != '\0') {
-        if(regex[i] == '.')
-        {
-            n = n +51;
-        }
-        else
-        {
-            n++;
-        }
-        i++;
+    while (regex[n] != '\0') {
+        n++;
     }
     printf("n : %d\n", n);
     
 
     state** res = malloc(sizeof(state*) * (n+1));
-    int avancement = 0;
     int index = 0;
     
-    for(i=0; i<n+1; i++){
+    for(int i=0; i<n+1; i++){
         res[i] = malloc(sizeof(state));
     }
-    for(i=0; i<n; i++){
-        if(regex[avancement]=='|' || regex[avancement]=='@' || regex[avancement]=='*' || regex[avancement]=='?'){
+    for(int i=0; i<n; i++){
+        if(regex[i]=='|' || regex[i]=='@' || regex[i]=='*' || regex[i]=='?'){
             res[i]->index=-1;
-            res[i]->c=regex[avancement];
+            res[i]->c=regex[i];
             res[i]->voisins=NULL;
-        } else if(regex[avancement] == '.')
-        {
-            res[i]->c = (char)97;
-            res[i]->index = index;
-            res[i]->voisins = NULL;
-            index++;
-            i++;
-            for(int j = 98; j < 123; j++)
-            {
-                res[i]->c = (char)j;
-                res[i]->index = index;
-                res[i]->voisins = NULL;
-                index++;
-                i++;
-                res[i]->c = '|';
-                res[i]->index = -1;
-                res[i]->voisins = NULL;
-                i++;
-            }
-            i--;
-        }
-        else {
+        } else {
             res[i]->index=index;
             index++;
-            res[i]->c=regex[avancement];
+            res[i]->c=regex[i];
             res[i]->voisins=NULL;
         }
-        avancement++;
         
     }
     res[n]->c='\0';
@@ -605,7 +582,8 @@ maillon2* facteurs(state** numberRegex)
         state*** match = match_with(numberRegex);
         if(match[2][0]->c == '@')
         {
-            return unionMaillon2(facteurs(match[0]), unionMaillon2(facteurs(match[0]), ensembleDernPrem(match[0], match[1])));
+            //print_maillon2(facteurs(match[1]));
+            return unionMaillon2(facteurs(match[0]), unionMaillon2(facteurs(match[1]), ensembleDernPrem(match[0], match[1])));
         }
         else if(match[2][0]->c == '|')
         {
@@ -613,6 +591,7 @@ maillon2* facteurs(state** numberRegex)
         }
         else if(match[2][0]->c == '*')
         {
+            //print_maillon2(ensembleDernPrem(match[0], match[0]));
             return unionMaillon2(facteurs(match[0]), ensembleDernPrem(match[0], match[0]));
         }
         else
@@ -635,7 +614,6 @@ automate build(state** numberRegex){
     debut->voisins=p;
    
     while(f!=NULL){
-        printf("%c est ajoute dans les voisin de %c\n", f->arrivee->c, f->depart->c);
         f->depart->voisins = addMaillon1(f->depart->voisins, f->arrivee);
         f=f->next;
     }
@@ -670,10 +648,8 @@ bool reconnu(automate a, char* mot){
         while(current!= NULL)
         {
 
-            if(current->val->c == mot[0])
+            if(current->val->c == mot[0] || current->val->c == '.')
             {
-                printf("actuel : %c\n", mot[0]);
-                printf("voisins premier : %c",current->val->voisins->val->c);
                 automate new;
                 new.debut = current->val;
                 new.fin = a.fin;
@@ -693,6 +669,7 @@ bool reconnu(automate a, char* mot){
 
 
 int main(int argc, char* argv[]){
+    /*
     state a;
     state b;
     state c;
@@ -744,6 +721,7 @@ int main(int argc, char* argv[]){
     fin.voisins = NULL;
 
     state test[4] = {a,b,arobase,fin};
+    */
     state** exNum = numberEx(argv[1]);
 
     printf("Expr de base : \n");
@@ -769,17 +747,10 @@ int main(int argc, char* argv[]){
     print_maillon2(facteurs(exNum));
     printf("\n");
 
-   automate au = build(exNum);
+    automate au = build(exNum);
 
-    printf("voisins premier : %c",au.debut->voisins->val->voisins->val->c);
-
-    if (reconnu(au, "salut")) {
-        printf("true\n");
-    }
-
-
-    /*
-    FILE* in = stdin;
+    
+    FILE* in = fopen(argv[2], "r");
     char* line = malloc((MAX_LINE_LENGTH + 1) * sizeof(char));
     while (true) {
         if (fgets(line, MAX_LINE_LENGTH, in) == NULL) break;
@@ -789,12 +760,12 @@ int main(int argc, char* argv[]){
             i++;
         }
         line[i-1] = '\0';
-        if (reconnu(au, "salut")) {
-            printf("true");
+        if (reconnu(au, line)) {
+            puts(line);
         }
     }
     fclose(in);
     free(line);
-    */
+    
     return 0;
 }
